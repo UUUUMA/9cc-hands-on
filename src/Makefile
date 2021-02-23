@@ -9,4 +9,7 @@ test: 9cc
 clean:
 	rm -f 9cc *.o *~ tmp*
 
-.PHONY: test clean
+format: _clang-format
+	clang-format -style=file -i *.c
+
+.PHONY: test clean format

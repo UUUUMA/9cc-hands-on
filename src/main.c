@@ -71,14 +71,14 @@ static int get_number(Token* tok) {
 
 static Token* new_token(TokenKind kind, char* start, char* end) {
     Token* tok = calloc(1, sizeof(Token));
-    tok->kind = kind;
-    tok->loc = start;
-    tok->len = end - start;
+    tok->kind  = kind;
+    tok->loc   = start;
+    tok->len   = end - start;
     return tok;
 }
 
 static Token* tokenize() {
-    char* p = current_input;
+    char* p    = current_input;
     Token head = {};
     Token* cur = &head;
 
@@ -90,17 +90,17 @@ static Token* tokenize() {
 
         if (isdigit(*p)) {
             cur->next = new_token(TK_NUM, p, p);
-            cur = cur->next;
+            cur       = cur->next;
 
-            char* q = p;
+            char* q  = p;
             cur->val = strtol(p, &p, 10);
             cur->len = q - p;
             continue;
         }
 
         if (*p == '+' || *p == '-') {
-            cur->next = new_token(TK_PUNCT, p, p+1);
-            cur = cur->next;
+            cur->next = new_token(TK_PUNCT, p, p + 1);
+            cur       = cur->next;
             p++;
             continue;
         }
@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
     }
 
     current_input = argv[1];
-    Token* tok = tokenize(argv[1]);
+    Token* tok    = tokenize(argv[1]);
 
     printf(".globl main\n");
     printf("main:\n");
@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
             tok = tok->next->next;
             continue;
         }
-        
+
         tok = skip(tok, "-");
         printf("  sub $%d, %%rax\n", get_number(tok));
         tok = tok->next;
