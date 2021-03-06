@@ -1,7 +1,11 @@
 CFLAGS=-std=c11 -g -fno-common
+SRCS=$(wildcard *.c)
+OBJS=$(SRCS:.c=.o)
 
-9cc: main.o
-	$(CC) -o 9cc main.o $(LDFLAGS)
+9cc: $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+$(OBJS): 9cc.h
 
 test: 9cc
 	./test.sh
@@ -10,6 +14,6 @@ clean:
 	rm -f 9cc *.o *~ tmp*
 
 format: _clang-format
-	clang-format -style=file -i *.c
+	clang-format -style=file -i *.c *.h
 
 .PHONY: test clean format
