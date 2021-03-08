@@ -46,12 +46,14 @@ typedef enum {
     ND_NE,
     ND_LT,
     ND_LE,
+    ND_EXPR_STMT,
     ND_NUM,
 } NodeKind;
 
 typedef struct Node Node;
 struct Node {
     NodeKind kind;
+    Node* next;
     Node* lhs;
     Node* rhs;
     int val;
