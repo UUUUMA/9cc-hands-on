@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -17,6 +18,7 @@ typedef enum {
     TK_EOF,
 } TokenKind;
 
+// Token
 typedef struct Token Token;
 struct Token {
     TokenKind kind;
@@ -54,19 +56,37 @@ typedef enum {
 } NodeKind;
 
 typedef struct Node Node;
+
+// Local variable
+typedef struct Obj Obj;
+struct Obj {
+    Obj* next;
+    char* name;
+    // offset from BSP
+    int offset;
+};
+
+// AST node
 struct Node {
     NodeKind kind;
     Node* next;
     Node* lhs;
     Node* rhs;
-    char name;
+    Obj* var;
     int val;
 };
 
-Node* parse(Token* tok);
+typedef struct Function Function;
+struct Function {
+    Node* body;
+    Obj* locals;
+    int stack_size;
+};
+
+Function* parse(Token* tok);
 
 /*
  * Code generator
  */
 
-void codegen(Node* node);
+void codegen(Function* prog);

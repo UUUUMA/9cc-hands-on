@@ -6,9 +6,9 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    Token* tok = tokenize(argv[1]);
-    Node* node = parse(tok);
-    codegen(node);
+    Token* tok     = tokenize(argv[1]);
+    Function* prog = parse(tok);
+    codegen(prog);
 
     return EXIT_SUCCESS;
 }
