@@ -10,6 +10,12 @@ static void pop(char* arg) {
     depth--;
 }
 
+static int count() {
+    static int i = 0;
+    i++;
+    return i;
+}
+
 static void gen_addr(Node* node) {
     if (node->kind == ND_VAR) {
         printf("  lea %d(%%rbp), %%rax\n", node->var->offset);
@@ -83,6 +89,20 @@ static void gen_expr(Node* node) {
 
 static void gen_stmt(Node* node) {
     switch (node->kind) {
+        case ND_IF: {
+            int c = count();
+            gen_expr(node->cond);
+            printf("  cmp $0, %%rax\n");
+            printf("  je .L.else.%d\n", c);
+            gen_stmt(node->then);
+            printf("  jmp .L.end.%d\n", c);
+            printf(".L.else.%d:\n", c);
+            if (node->els) {
+                gen_stmt(node->els);
+            }
+            printf(".L.end.%d:\n", c);
+            return;
+        }
         case ND_BLOCK:
             for (Node* n = node->body; n; n = n->next) {
                 gen_stmt(n);
