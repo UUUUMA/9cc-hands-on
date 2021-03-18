@@ -29,7 +29,6 @@ struct Token {
     int len;
 };
 
-void error(char* fmt, ...);
 void error_at(char* loc, char* fmt, ...);
 void error_tok(Token* tok, char* fmt, ...);
 bool equal(Token* tok, char* op);
@@ -77,6 +76,9 @@ struct Node {
     Node* next;
     Node* lhs;
     Node* rhs;
+
+    // representative token
+    Token* tok;
 
     // for "if" or "for" statement
     Node* cond;
