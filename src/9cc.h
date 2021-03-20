@@ -36,6 +36,28 @@ Token* skip(Token* tok, char* s);
 Token* tokenize(char* p);
 
 /*
+ * Type
+ */
+
+typedef struct Type Type;
+typedef struct Node Node;
+
+typedef enum {
+    TY_INT,
+    TY_PTR,
+} TypeKind;
+
+struct Type {
+    TypeKind kind;
+    Type* base;
+};
+
+extern Type* ty_int;
+
+bool is_integer(Type* ty);
+void add_type(Node* node);
+
+/*
  * Parser
  */
 
@@ -61,8 +83,6 @@ typedef enum {
     ND_NUM,
 } NodeKind;
 
-typedef struct Node Node;
-
 // Local variable
 typedef struct Obj Obj;
 struct Obj {
@@ -78,6 +98,7 @@ struct Node {
     Node* next;
     Node* lhs;
     Node* rhs;
+    Type* ty;
 
     // representative token
     Token* tok;
