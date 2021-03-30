@@ -33,6 +33,7 @@ void error_at(char* loc, char* fmt, ...);
 void error_tok(Token* tok, char* fmt, ...);
 bool equal(Token* tok, char* op);
 Token* skip(Token* tok, char* s);
+bool consume(Token** rest, Token* tok, char* str);
 Token* tokenize(char* p);
 
 /*
@@ -50,11 +51,13 @@ typedef enum {
 struct Type {
     TypeKind kind;
     Type* base;
+    Token* name;
 };
 
 extern Type* ty_int;
 
 bool is_integer(Type* ty);
+Type* pointer_to(Type* ty);
 void add_type(Node* node);
 
 /*
@@ -88,6 +91,7 @@ typedef struct Obj Obj;
 struct Obj {
     Obj* next;
     char* name;
+    Type* ty;
     // offset from BSP
     int offset;
 };
