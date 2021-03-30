@@ -81,6 +81,7 @@ typedef enum {
     ND_IF,
     ND_FOR,
     ND_BLOCK,
+    ND_FUNCALL,
     ND_EXPR_STMT,
     ND_VAR,
     ND_NUM,
@@ -118,6 +119,9 @@ struct Node {
 
     // for "block" statement
     Node* body;
+
+    // for function call
+    char* funcname;
 
     // for variables
     Obj* var;
