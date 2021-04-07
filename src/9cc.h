@@ -122,6 +122,7 @@ struct Node {
 
     // for function call
     char* funcname;
+    Node* args;
 
     // for variables
     Obj* var;

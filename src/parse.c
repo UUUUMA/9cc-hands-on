@@ -383,6 +383,29 @@ static Node* unary(Token** rest, Token* tok) {
     return primary(rest, tok);
 }
 
+static Node* funcall(Token** rest, Token* tok) {
+    Token* start = tok;
+    tok          = tok->next->next;
+
+    Node head = {};
+    Node* cur = &head;
+
+    while (!equal(tok, ")")) {
+        if (cur != &head) {
+            tok = skip(tok, ",");
+        }
+        cur->next = assign(&tok, tok);
+        cur       = cur->next;
+    }
+
+    *rest = skip(tok, ")");
+
+    Node* node     = new_node(ND_FUNCALL, tok);
+    node->funcname = strndup(start->loc, start->len);
+    node->args     = head.next;
+    return node;
+}
+
 static Node* primary(Token** rest, Token* tok) {
     if (equal(tok, "(")) {
         Node* node = expr(&tok, tok->next);
@@ -393,10 +416,7 @@ static Node* primary(Token** rest, Token* tok) {
     if (tok->kind == TK_IDENT) {
         // function call
         if (equal(tok->next, "(")) {
-            Node* node     = new_node(ND_FUNCALL, tok);
-            node->funcname = strndup(tok->loc, tok->len);
-            *rest          = skip(tok->next->next, ")");
-            return node;
+            return funcall(rest, tok);
         }
 
         // variable
