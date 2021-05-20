@@ -140,6 +140,8 @@ static Type* declspec(Token** rest, Token* tok) {
     return ty_int;
 }
 
+// func-params = (param ("," param)*)? ")"
+// param       = declspec declartor
 static Type* func_params(Token** rest, Token* tok, Type* ty) {
     Type head = {};
     Type* cur = &head;
@@ -159,6 +161,9 @@ static Type* func_params(Token** rest, Token* tok, Type* ty) {
     return ty;
 }
 
+// type-suffix = "(" func-params
+//             | "[" num "]" type-suffix
+//             | ε
 static Type* type_suffix(Token** rest, Token* tok, Type* ty) {
     if (equal(tok, "(")) {
         return func_params(rest, tok->next, ty);
@@ -175,7 +180,7 @@ static Type* type_suffix(Token** rest, Token* tok, Type* ty) {
     return ty;
 }
 
-// 1 = "*"* ident
+// declartor = "*"* ident type-suffix
 static Type* declarator(Token** rest, Token* tok, Type* ty) {
     while (consume(&tok, tok, "*")) {
         ty = pointer_to(ty);
@@ -224,6 +229,7 @@ static Node* declaration(Token** rest, Token* tok) {
     return node;
 }
 
+// compound-stmt = (declartor | stmt )* "}"
 static Node* compound_stmt(Token** rest, Token* tok) {
     Node head = {};
     Node* cur = &head;
@@ -243,6 +249,12 @@ static Node* compound_stmt(Token** rest, Token* tok) {
     return node;
 }
 
+// stmt = "return" expr ";"
+//      | "if" "(" expr ")" stmt ("else" stmt)?
+//      | "for" "(" expr-stmt expr ";" expr? ")" stmt
+//      | "while" "(" expr ")" stmt
+//      | "{" compound-stmt
+//      | expr-stmt
 static Node* stmt(Token** rest, Token* tok) {
     if (equal(tok, "return")) {
         Node* node = new_node(ND_RETURN, tok);
@@ -302,6 +314,7 @@ static Node* stmt(Token** rest, Token* tok) {
     return expr_stmt(rest, tok);
 }
 
+// expr-stmt = expr? ";"
 static Node* expr_stmt(Token** rest, Token* tok) {
     if (equal(tok, ";")) {
         *rest = tok->next;
@@ -314,10 +327,12 @@ static Node* expr_stmt(Token** rest, Token* tok) {
     return node;
 }
 
+// expr = assign
 static Node* expr(Token** rest, Token* tok) {
     return assign(rest, tok);
 }
 
+// assign = equality ("=" assign)?
 static Node* assign(Token** rest, Token* tok) {
     Node* node = equality(&tok, tok);
     if (equal(tok, "=")) {
@@ -327,6 +342,7 @@ static Node* assign(Token** rest, Token* tok) {
     return node;
 }
 
+// equality = relational ("==" relational | "!=" relational)*
 static Node* equality(Token** rest, Token* tok) {
     Node* node = relational(&tok, tok);
 
@@ -346,6 +362,7 @@ static Node* equality(Token** rest, Token* tok) {
     }
 }
 
+// relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 static Node* relational(Token** rest, Token* tok) {
     Node* node = add(&tok, tok);
 
@@ -373,6 +390,7 @@ static Node* relational(Token** rest, Token* tok) {
     }
 }
 
+// add = mul ("+" mul | "-" mul)*
 static Node* add(Token** rest, Token* tok) {
     Node* node = mul(&tok, tok);
 
@@ -392,6 +410,7 @@ static Node* add(Token** rest, Token* tok) {
     }
 }
 
+// mul = unary ("*" unary | "/" unary)*
 static Node* mul(Token** rest, Token* tok) {
     Node* node = unary(&tok, tok);
 
@@ -411,6 +430,8 @@ static Node* mul(Token** rest, Token* tok) {
     }
 }
 
+// unary = ("+" | "-" | "*" | "&") unary
+//       | postfix
 static Node* unary(Token** rest, Token* tok) {
     if (equal(tok, "+")) {
         return unary(rest, tok->next);
@@ -427,6 +448,7 @@ static Node* unary(Token** rest, Token* tok) {
     return primary(rest, tok);
 }
 
+// funcall = ident "(" (assign ("," assign)*)? ")"
 static Node* funcall(Token** rest, Token* tok) {
     Token* start = tok;
     tok          = tok->next->next;
@@ -450,11 +472,18 @@ static Node* funcall(Token** rest, Token* tok) {
     return node;
 }
 
+// primary = "(" expr ")" | "sizeof" unary | ident func-args? | num
 static Node* primary(Token** rest, Token* tok) {
     if (equal(tok, "(")) {
         Node* node = expr(&tok, tok->next);
         *rest      = skip(tok, ")");
         return node;
+    }
+
+    if (equal(tok, "sizeof")) {
+        Node* node = unary(rest, tok->next);
+        add_type(node);
+        return new_num(node->ty->size, tok);
     }
 
     if (tok->kind == TK_IDENT) {
@@ -505,6 +534,7 @@ static Function* function(Token** rest, Token* tok) {
     return fn;
 }
 
+// program = function-definition*
 Function* parse(Token* tok) {
     Function head = {};
     Function* cur = &head;
