@@ -109,8 +109,18 @@ struct Obj {
     Obj* next;
     char* name;
     Type* ty;
+    bool is_local;
+
     // offset from BSP
     int offset;
+
+    bool is_function;
+
+    // Function
+    Obj* params;
+    Node* body;
+    Obj* locals;
+    int stack_size;
 };
 
 // AST node
@@ -147,20 +157,10 @@ struct Node {
     int val;
 };
 
-typedef struct Function Function;
-struct Function {
-    Function* next;
-    char* name;
-    Obj* params;
-    Node* body;
-    Obj* locals;
-    int stack_size;
-};
-
-Function* parse(Token* tok);
+Obj* parse(Token* tok);
 
 /*
  * Code generator
  */
 
-void codegen(Function* prog);
+void codegen(Obj* prog);

@@ -1,7 +1,7 @@
 #include "9cc.h"
 
 // all local variable instances created during parsing are accumulated to this list.
-Obj* locals;
+static Obj* locals;
 
 static Type* declspec(Token** rest, Token* tok);
 static Type* declarator(Token** rest, Token* tok, Type* ty);
@@ -517,14 +517,15 @@ static void create_param_lvars(Type* param) {
     }
 }
 
-static Function* function(Token** rest, Token* tok) {
+static Obj* function(Token** rest, Token* tok) {
     Type* ty = declspec(&tok, tok);
     ty       = declarator(&tok, tok, ty);
 
     locals = NULL;
 
-    Function* fn = calloc(1, sizeof(Function));
-    fn->name     = get_ident(ty->name);
+    Obj* fn         = calloc(1, sizeof(Obj));
+    fn->is_function = true;
+    fn->name        = get_ident(ty->name);
     create_param_lvars(ty->params);
     fn->params = locals;
     tok        = skip(tok, "{");
@@ -535,9 +536,9 @@ static Function* function(Token** rest, Token* tok) {
 }
 
 // program = function-definition*
-Function* parse(Token* tok) {
-    Function head = {};
-    Function* cur = &head;
+Obj* parse(Token* tok) {
+    Obj head = {};
+    Obj* cur = &head;
 
     while (tok->kind != TK_EOF) {
         cur->next = function(&tok, tok);
