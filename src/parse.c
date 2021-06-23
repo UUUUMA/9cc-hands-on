@@ -155,8 +155,13 @@ static int get_number(Token* tok) {
     return tok->val;
 }
 
-// declspec = int
+// declspec = char | int
 static Type* declspec(Token** rest, Token* tok) {
+    if (equal(tok, "char")) {
+        *rest = skip(tok, "char");
+        return ty_char;
+    }
+
     *rest = skip(tok, "int");
     return ty_int;
 }
@@ -250,6 +255,10 @@ static Node* declaration(Token** rest, Token* tok) {
     return node;
 }
 
+static bool is_typename(Token* tok) {
+    return equal(tok, "char") || equal(tok, "int");
+}
+
 // compound-stmt = (declartor | stmt )* "}"
 static Node* compound_stmt(Token** rest, Token* tok) {
     Node head = {};
@@ -257,7 +266,7 @@ static Node* compound_stmt(Token** rest, Token* tok) {
 
     Node* node = new_node(ND_BLOCK, tok);
     while (!equal(tok, "}")) {
-        if (equal(tok, "int")) {
+        if (is_typename(tok)) {
             cur->next = declaration(&tok, tok);
         } else {
             cur->next = stmt(&tok, tok);
