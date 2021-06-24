@@ -90,6 +90,20 @@ static void convert_keyword(Token* tok) {
     }
 }
 
+static Token* read_string_literal(char* start) {
+    char* p = start + 1;
+    for (; *p != '"'; p++) {
+        if (*p == '\n' || *p == '\0') {
+            error_at(start, "unclosed string literal");
+        }
+    }
+
+    Token* tok = new_token(TK_STR, start, p + 1);
+    tok->ty    = array_of(ty_char, p - start);
+    tok->str   = strndup(start + 1, p - start - 1);
+    return tok;
+}
+
 Token* tokenize(char* p) {
     current_input = p;
     Token head    = {};
@@ -108,6 +122,13 @@ Token* tokenize(char* p) {
             char* q  = p;
             cur->val = strtol(p, &p, 10);
             cur->len = q - p;
+            continue;
+        }
+
+        if (*p == '"') {
+            cur->next = read_string_literal(p);
+            cur       = cur->next;
+            p += cur->len;
             continue;
         }
 

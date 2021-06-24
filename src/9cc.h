@@ -7,6 +7,22 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Token def
+typedef struct Token Token;
+
+// Parser def
+typedef struct Obj Obj;
+typedef struct Node Node;
+
+// Type def
+typedef struct Type Type;
+
+/*
+ * strings.c
+ */
+
+char* format(char* fmt, ...);
+
 /*
  * Tokenizer
  */
@@ -15,18 +31,22 @@ typedef enum {
     TK_IDENT,
     TK_PUNCT,
     TK_KEYWORD,
+    TK_STR,
     TK_NUM,
     TK_EOF,
 } TokenKind;
 
 // Token
-typedef struct Token Token;
 struct Token {
     TokenKind kind;
     Token* next;
     int val;
     char* loc;
     int len;
+
+    // used if TY_STR
+    Type* ty;
+    char* str;
 };
 
 void error_at(char* loc, char* fmt, ...);
@@ -39,9 +59,6 @@ Token* tokenize(char* p);
 /*
  * Type
  */
-
-typedef struct Type Type;
-typedef struct Node Node;
 
 typedef enum {
     TY_CHAR,
@@ -106,7 +123,6 @@ typedef enum {
 } NodeKind;
 
 // Local variable
-typedef struct Obj Obj;
 struct Obj {
     Obj* next;
     char* name;
@@ -116,7 +132,11 @@ struct Obj {
     // offset from BSP
     int offset;
 
+    // global variable or function
     bool is_function;
+
+    // global variable
+    char* init_data;
 
     // Function
     Obj* params;
